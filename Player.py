@@ -5,6 +5,9 @@ class Player:
         self.name = name
         self.hand = []  # Player's hand of cards
 
+    def add_card(self, card):
+        self.hand.append(card)
+
     def receive_cards(self, cards):
         """Adds received cards to the player's hand."""
         self.hand.extend(cards)
@@ -18,8 +21,7 @@ class Player:
             raise ValueError(f"{card} is not in {self.name}'s hand.")
 
     def show_hand(self):
-        """Returns a list of cards in the player's hand."""
-        return self.hand
+        return [str(card) for card in self.hand]
 
     def __repr__(self):
         return f"Player: {self.name}, Hand: {len(self.hand)} cards"
