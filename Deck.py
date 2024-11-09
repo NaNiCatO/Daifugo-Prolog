@@ -1,15 +1,14 @@
 import random
 
 class Card:
-    def __init__(self, id, suit, rank, value, color):
+    def __init__(self, id, suit, rank, color):
         self.id = id
         self.suit = suit
         self.rank = rank
-        self.value = value
         self.color = color
 
     def __repr__(self):
-        return f"{self.rank} of {self.suit}"
+        return f"Card({self.rank}, {self.suit})"
 
 
 class Deck:
@@ -25,9 +24,8 @@ class Deck:
         id_counter = 1
         for suit in suits:
             for rank in ranks:
-                value = ranks.index(rank) + 2  # Assigning values: 2-10, J=11, Q=12, K=13, A=14
                 color = 'Red' if suit in ['Hearts', 'Diamonds'] else 'Black'
-                card = Card(id_counter, suit, rank, value, color)
+                card = Card(id_counter, suit, rank, color)
                 self.cards.append(card)
                 id_counter += 1
 
