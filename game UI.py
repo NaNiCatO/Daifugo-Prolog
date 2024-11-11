@@ -78,6 +78,7 @@ class Game:
         self.ai_query = False
         self.winner = None
         self.top_card = []
+        self.last_played_cards = []
         self.innit_gameUI_data()
         self.state = "main_game"
         print("Game started with:")
@@ -239,10 +240,12 @@ class Game:
             prolog = Prolog()
             # Load the Prolog file containing your move validation and selection logic
             prolog.consult("Move_Validation.pro")
-            query = f"best_move([{', '.join([str(card) for card in self.current_player.hand])}], {str(self.top_card[-1])}, BestMove)"
+            query = f"best_move([{', '.join([str(card) for card in self.current_player.hand])}], [{', '.join([str(card) for card in self.last_played_cards])}], BestMove)"
             print("Query:", query)
-            results = list(prolog.query(query))
+            results = prolog.query(query)
             # results = 0
+            print("Results:", results)
+            results = list(results)
             print("Results:", results)
             if results:
                 print("Best move:", results[0]['BestMove'])
@@ -261,32 +264,17 @@ class Game:
 
 
     def confirm_selection(self):
-        if self.selected_cards:
-            self.sort_confirm()
-            self.num_played_cards = len(self.selected_cards)
-            if self.num_played_cards == 1 and self.top_card:
-                # Initialize Prolog
-                prolog = Prolog()
-                # Load the Prolog code into Python (assume code is saved in 'valid_move_rules.pl')
-                prolog.consult("Move_Validation.pro")
-                # Query Prolog to check if it's a valid move
-                query_result = list(prolog.query(
-                    f"valid_move({str(self.selected_cards[0])}, {str(self.top_card[-1])})"
-                ))
-                if query_result:
-                    for i, card in enumerate(self.selected_cards):
-                        self.current_player.play_card(card)
-                        self.top_card.append(card)
-                        self.card_UIobj.move_to_end(card)
-                        card_data = self.card_UIobj[card]
-                        card_data["card_positions"]["target"] = ((self.screen_width // 2) - (100/len(self.selected_cards)*i) + randint(-3,3), (self.screen_height // 2) - 100 + randint(-5,5))
-                    self.set_initial_card_positions()
-                    self.next_turn()
-                    self.selected_cards = []  # Clear selections after playing
-                    self.ai_query = False
-                else:
-                    print("Invalid move. Try again.")
-            else:
+        if len(self.selected_cards) > 0:
+            # Initialize Prolog
+            prolog = Prolog()
+            # Load the Prolog code into Python (assume code is saved in 'valid_move_rules.pl')
+            prolog.consult("Move_Validation.pro")
+            # Query Prolog to check if it's a valid move
+            query_result = list(prolog.query(
+                f"valid_move([{', '.join([str(card) for card in self.selected_cards])}], [{', '.join([str(card) for card in self.last_played_cards])}])"
+            ))
+            if query_result:
+                self.sort_confirm()
                 for i, card in enumerate(self.selected_cards):
                     self.current_player.play_card(card)
                     self.top_card.append(card)
@@ -294,11 +282,14 @@ class Game:
                     card_data = self.card_UIobj[card]
                     card_data["card_positions"]["target"] = ((self.screen_width // 2) - (100/len(self.selected_cards)*i) + randint(-3,3), (self.screen_height // 2) - 100 + randint(-5,5))
                 self.check_winner()
+                self.last_played_cards = self.selected_cards
                 self.set_initial_card_positions()
                 self.next_turn()
                 self.selected_cards = []  # Clear selections after playing
                 self.ai_query = False
-            
+        else:
+            print("Invalid move. Try again.")
+        print(f"Last played cards:ASDASDASDASD {self.last_played_cards}")
 
     def sort_confirm(self):
         # Sort the hand by card rank then suit but A is the second highest and 2 is the highest
@@ -326,7 +317,7 @@ class Game:
             for card in self.selected_cards:
                 self.card_UIobj[card]["card_positions"]["target"] = (self.card_UIobj[card]["card_positions"]["current"][0], self.card_UIobj[card]["card_positions"]["current"][1] + 20)
             self.selected_cards = []
-
+        self.last_played_cards = []
         self.status_player[self.players.index(self.current_player)] = False
         self.playable_player -= 1
         self.next_turn()
