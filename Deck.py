@@ -8,7 +8,7 @@ class Card:
         self.color = color
 
     def __repr__(self):
-        return f"Card({self.rank}, {self.suit})"
+        return f"card('{self.rank}', {self.suit.lower()})"
 
 
 class Deck:
@@ -18,12 +18,12 @@ class Deck:
 
     def build_deck(self):
         """Creates a standard 52-card deck."""
-        suits = ['Hearts', 'Diamonds', 'Clubs', 'Spades']
-        ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
+        suits = ['Clubs', 'Diamonds', 'Hearts', 'Spades']
+        ranks = ['3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A', '2']
         
         id_counter = 1
-        for suit in suits:
-            for rank in ranks:
+        for rank in ranks:
+            for suit in suits:
                 color = 'Red' if suit in ['Hearts', 'Diamonds'] else 'Black'
                 card = Card(id_counter, suit, rank, color)
                 self.cards.append(card)
