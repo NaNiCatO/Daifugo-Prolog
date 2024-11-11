@@ -5,18 +5,18 @@ pygame.init()
 
 # Screen setup
 screen = pygame.display.set_mode((800, 600))
-pygame.display.set_caption("Simple Animation Example")
+pygame.display.set_caption("Transparent Box Example")
 
-# Card properties
-card_color = (0, 128, 255)
-card_size = (50, 100)
-card_pos = [50, 250]  # Starting position
-speed = 2  # Speed of the card's movement
+# Create a surface for the transparent box
+box_width, box_height = 800, 600
+transparent_box = pygame.Surface((box_width, box_height), pygame.SRCALPHA)  # Use SRCALPHA for transparency
+
+# Fill the surface with a semi-transparent color (RGBA)
+transparent_box.fill((0, 128, 255, 128))  # Last value (128) is the alpha channel (0 = fully transparent, 255 = fully opaque)
 
 # Main loop flag
 running = True
 
-# Main animation loop
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -25,22 +25,11 @@ while running:
     # Clear the screen
     screen.fill((255, 255, 255))
 
-    # Update the card position
-    card_pos[0] += speed  # Move the card to the right
-
-    # If the card reaches the edge of the screen, reverse direction
-    if card_pos[0] + card_size[0] > 800 or card_pos[0] < 0:
-        speed = -speed
-
-    # Draw the card
-    card_rect = pygame.Rect(card_pos, card_size)
-    pygame.draw.rect(screen, card_color, card_rect)
+    # Blit (draw) the transparent box onto the screen
+    screen.blit(transparent_box, (0, 0))  # Position it on the screen
 
     # Update the display
     pygame.display.flip()
-
-    # Control the frame rate
-    pygame.time.Clock().tick(60)
 
 # Quit Pygame
 pygame.quit()
