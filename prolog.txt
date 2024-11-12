@@ -1,0 +1,48 @@
+consult("ai_logic.pl").
+consult("game_logic.pl").
+initialize_game([(5,hearts),(8,diamonds)],[(6,diamonds),(10,spades)]).
+findall(Move,(subset(Move,[(6,diamonds),(10,spades)]),valid_move(Move,[(5,hearts)])),Moves). 
+findall(Move,subset(Move,[(6,diamonds),(10,spades)]),Moves).
+findall(Move, (member(Move, [(6, diamonds), (10, spades)])), Moves)
+findall(Move, (member(Move, [(6, diamonds), (10, spades)]),valid_move([Move],[(5,hearts)])), Moves)
+findall(Move,(all_subsets([(6,diamonds),(10,spades)],Move),Move \= [],valid_move(Move,[(5,hearts)])),Moves).
+
+
+
+% Move Validation
+% valid_move(+Move, +LastPlay) - Checks if a Move is valid based on the last play
+valid_move(Move, LastPlay) :-
+    player_hand(_, Hand),
+    subset(Move, Hand),                    % Ensure Move is a subset of the players Hand
+    rank_order(RankOrder),
+    compare_hands(Move, LastPlay, RankOrder).
+
+% Compare Move with Last Play
+% compare_hands(+Move, +LastPlay, +RankOrder) - Checks if Move has a higher rank than LastPlay
+compare_hands(Move, LastPlay, RankOrder) :-
+    hand_rank(Move, RankOrder, MoveRank),
+    hand_rank(LastPlay, RankOrder, LastPlayRank),
+    MoveRank > LastPlayRank.
+
+
+
+
+
+% valid_move(+Move, +LastPlay) - Checks if a Move is valid based on the last play
+valid_move(Move, LastPlay) :-
+    player_hand(_, Hand),
+    subset(Move, Hand),                    % Ensure Move is a subset of the players Hand
+    rank_order(RankOrder),
+    compare_hands(Move, LastPlay, RankOrder).
+
+% Compare Move with Last Play
+% compare_hands(+Move, +LastPlay, +RankOrder) - Checks if Move has a higher rank than LastPlay
+compare_hands(Move, LastPlay, RankOrder) :-
+    hand_rank(Move, RankOrder, MoveRank),
+    hand_rank(LastPlay, RankOrder, LastPlayRank),
+    MoveRank > LastPlayRank.
+
+% Determine rank of hand in the order list
+% Modified to handle tuples (Rank, Suit)
+hand_rank([Card|_], RankOrder, Rank) :-
+    nth0(Rank, RankOrder, Card).

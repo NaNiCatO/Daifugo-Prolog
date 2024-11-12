@@ -1,4 +1,7 @@
-:- module(ai_logic, [best_move/2]).
+:- module(ai_logic, [best_move/2,
+    alpha_beta/5,
+    valid_moves/3]).
+
 
 % Importing game logic predicates from main game file
 :- use_module(game_logic).  % Assuming game logic predicates are in a file called `game_logic.pl`
@@ -65,7 +68,7 @@ max_value(GameState, Alpha, Beta, Value) :-
 % Helper predicate to generate valid moves from a hand
 % valid_moves(+Hand, +LastPlay, -Moves) - List of Moves from Hand that are valid after LastPlay
 valid_moves(Hand, LastPlay, Moves) :-
-    findall(Move, (subset(Move, Hand), valid_move(Move, LastPlay)), Moves).
+    findall(Move, (all_subsets(Hand, Move),Move \= [], valid_move(Move, LastPlay)), Moves).
 
 % Helper predicate to make a move and generate the next game state
 % make_move(+GameState, +Move, -NewGameState) - Generates a new game state after Move
@@ -77,3 +80,9 @@ subset([], _).
 subset([Elem|SubTail], List) :-
     member(Elem, List),
     subset(SubTail, List).
+
+all_subsets([], []).
+all_subsets([Elem|Tail], [Elem|SubTail]) :-
+    all_subsets(Tail, SubTail).
+all_subsets([_|Tail], SubTail) :-
+    all_subsets(Tail, SubTail).

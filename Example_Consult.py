@@ -39,12 +39,13 @@ def ai_move():
     """
     # Retrieve the best move for the AI
     ai_query = list(prolog.query("ai_turn(Move)"))
-    
+    print("ai_query:", ai_query)
     if ai_query:
         ai_move = ai_query[0]['Move']
-        print(f"AI plays: {ai_move}")
+        # print(f"AI plays: {ai_move}")
     else:
-        print("AI could not determine a valid move.")
+        ai_move = None
+        # print("AI could not determine a valid move.")
 
 # Check if the game has ended and declare the winner
 def check_game_end():
@@ -68,20 +69,20 @@ def main_game_loop():
     initialize_game(player_hand, ai_hand)
     
     # Main loop to handle turns
-    while True:
-        # Player makes a move (example move [3])
-        player_move([3])
-        
-        # Check if the game has ended
-        if check_game_end():
-            break
-        
-        # AI makes its move
-        ai_move()
-        
-        # Check if the game has ended
-        if check_game_end():
-            break
+    # while True:
+    # Player makes a move (example move [3])
+    player_move([3])
+    
+    # Check if the game has ended
+    # if check_game_end():
+    #     break
+    
+    # AI makes its move
+    ai_move()
+    
+    # Check if the game has ended
+    # if check_game_end():
+    #     break
 
 # Run the main game loop
 main_game_loop()

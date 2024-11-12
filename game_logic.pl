@@ -7,8 +7,20 @@
     next_player_turn/0
 ]).
 
-% Define card ranks for the standard gameplay order
-rank_order([3, 4, 5, 6, 7, 8, 9, 10, j, q, k, a, 2]).
+% Define card ranks for the standard gameplay order, with suits ranked: clubs < diamonds < hearts < spades
+rank_order([(i,i),(3, clubs), (3, diamonds), (3, hearts), (3, spades),
+            (4, clubs), (4, diamonds), (4, hearts), (4, spades),
+            (5, clubs), (5, diamonds), (5, hearts), (5, spades),
+            (6, clubs), (6, diamonds), (6, hearts), (6, spades),
+            (7, clubs), (7, diamonds), (7, hearts), (7, spades),
+            (8, clubs), (8, diamonds), (8, hearts), (8, spades),
+            (9, clubs), (9, diamonds), (9, hearts), (9, spades),
+            (10, clubs), (10, diamonds), (10, hearts), (10, spades),
+            (j, clubs), (j, diamonds), (j, hearts), (j, spades),
+            (q, clubs), (q, diamonds), (q, hearts), (q, spades),
+            (k, clubs), (k, diamonds), (k, hearts), (k, spades),
+            (a, clubs), (a, diamonds), (a, hearts), (a, spades),
+            (2, clubs), (2, diamonds), (2, hearts), (2, spades)]).
 
 % Game state facts
 :- dynamic player_hand/2.         % player_hand(PlayerType, Hand) - Stores the hand for each player type
@@ -20,9 +32,9 @@ rank_order([3, 4, 5, 6, 7, 8, 9, 10, j, q, k, a, 2]).
 initialize_game(PlayerHand, AIHand) :-
     assert(player_hand(player, PlayerHand)),
     assert(player_hand(ai, AIHand)),
-    random_between(0, 1, FirstPlayer),
+    random_between(0, 0, FirstPlayer),
     (FirstPlayer = 0 -> assert(current_turn(player)); assert(current_turn(ai))),
-    retractall(last_play(_)).
+    assert(last_play([(i,i)])).
 
 % Move Validation
 % valid_move(+Move, +LastPlay) - Checks if a Move is valid based on the last play
@@ -40,6 +52,7 @@ compare_hands(Move, LastPlay, RankOrder) :-
     MoveRank > LastPlayRank.
 
 % Determine rank of hand in the order list
+% Modified to handle tuples (Rank, Suit)
 hand_rank([Card|_], RankOrder, Rank) :-
     nth0(Rank, RankOrder, Card).
 
@@ -99,4 +112,3 @@ reset_game :-
     retractall(player_hand(_, _)),
     retractall(last_play(_)),
     retractall(current_turn(_)).
-
