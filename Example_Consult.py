@@ -3,7 +3,6 @@ from pyswip import Prolog
 # Initialize Prolog and load the two modules
 prolog = Prolog()
 prolog.consult("game_logic.pl")  # Path to game logic file
-prolog.consult("ai_logic.pl")    # Path to AI logic file
 
 # Initialize the game state with the player and AI hands
 def initialize_game(player_hand, ai_hand):
