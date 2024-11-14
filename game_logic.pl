@@ -32,7 +32,7 @@ rank_order([(3, clubs), (3, diamonds), (3, hearts), (3, spades),
 initialize_game(PlayerHand, AIHand) :-
     assert(player_hand(player, PlayerHand)),
     assert(player_hand(ai, AIHand)),
-    random_between(1, 1, FirstPlayer), % Randomly determine the first player (1 for player, 0 for AI)
+    random_between(0, 0, FirstPlayer),
     (FirstPlayer = 0 -> assert(current_turn(player)); assert(current_turn(ai))),
     assert(last_play([])).
 
@@ -40,7 +40,7 @@ initialize_game(PlayerHand, AIHand) :-
 % valid_move(+Move, +LastPlay) - Checks if a Move is valid based on the last play
 valid_move(Move, LastPlay) :-
     player_hand(_, Hand),
-    subset(Move, Hand),  % Ensure Move is a subset of the player's hand
+    subset(Move, Hand),  % Ensure Move is a subset of the players hand
     length(Move, MoveLen),
     (   % Case 1: LastPlay is empty (initial move) - any valid move is allowed
         LastPlay == [] ->
@@ -80,21 +80,13 @@ same_rank((Rank, _Suit), (Rank, _)).
 hand_rank([Card|_], RankOrder, Rank) :-
     nth0(Rank, RankOrder, Card).
 
-
-% Compare Move with Last Play
-% compare_hands(+Move, +LastPlay, +RankOrder) - Checks if Move has a higher rank than LastPlay
-compare_hands(Move, LastPlay, RankOrder) :-
-    hand_rank(Move, RankOrder, MoveRank),
-    hand_rank(LastPlay, RankOrder, LastPlayRank),
-    MoveRank > LastPlayRank.
-
 % Determine rank of hand in the order list
 % Modified to handle tuples (Rank, Suit)
 hand_rank([Card|_], RankOrder, Rank) :-
     nth0(Rank, RankOrder, Card).
 
 % Players Turn
-% player_turn(+Move) - Handles the player's turn, ensuring valid moves and preventing multiple executions
+% player_turn(+Move) - Handles the players turn, ensuring valid moves and preventing multiple executions
 player_turn(Move) :-
     current_turn(player),
     last_play(LastPlay),
@@ -149,3 +141,11 @@ reset_game :-
     retractall(player_hand(_, _)),
     retractall(last_play(_)),
     retractall(current_turn(_)).
+
+skip_turn :-
+    current_turn(Current),
+    (Current = player -> Next = ai; Next = player),
+    retract(current_turn(Current)),
+    assert(current_turn(Next)),
+    retractall(last_play(_)),
+    assert(last_play([])).
