@@ -8,7 +8,7 @@
 ]).
 
 % Define card ranks for the standard gameplay order, with suits ranked: clubs < diamonds < hearts < spades
-rank_order([(i,i),(3, clubs), (3, diamonds), (3, hearts), (3, spades),
+rank_order([(3, clubs), (3, diamonds), (3, hearts), (3, spades),
             (4, clubs), (4, diamonds), (4, hearts), (4, spades),
             (5, clubs), (5, diamonds), (5, hearts), (5, spades),
             (6, clubs), (6, diamonds), (6, hearts), (6, spades),
@@ -32,17 +32,54 @@ rank_order([(i,i),(3, clubs), (3, diamonds), (3, hearts), (3, spades),
 initialize_game(PlayerHand, AIHand) :-
     assert(player_hand(player, PlayerHand)),
     assert(player_hand(ai, AIHand)),
-    random_between(0, 0, FirstPlayer),
+    random_between(1, 1, FirstPlayer), % Randomly determine the first player (1 for player, 0 for AI)
     (FirstPlayer = 0 -> assert(current_turn(player)); assert(current_turn(ai))),
-    assert(last_play([(i,i)])).
+    assert(last_play([])).
 
 % Move Validation
 % valid_move(+Move, +LastPlay) - Checks if a Move is valid based on the last play
 valid_move(Move, LastPlay) :-
     player_hand(_, Hand),
-    subset(Move, Hand),                    % Ensure Move is a subset of the players Hand
+    subset(Move, Hand),  % Ensure Move is a subset of the player's hand
+    length(Move, MoveLen),
+    (   % Case 1: LastPlay is empty (initial move) - any valid move is allowed
+        LastPlay == [] ->
+        (   MoveLen =:= 1  % Allow any single card
+        ;   MoveLen > 1, same_value_cards(Move)  % Allow multiple cards if they have the same rank
+        )
+    ;   % Case 2: LastPlay is not empty, so standard validation applies
+        length(LastPlay, LastPlayLen),
+        (   % Case 2.1: Same number of cards, check if value is higher
+            MoveLen =:= LastPlayLen ->
+            valid_single_or_same_size_move(Move, LastPlay)
+        ;   % Case 2.2: Move has more cards (exactly 2 more)
+            MoveLen =:= LastPlayLen + 2 ->
+            same_value_cards(Move)
+        )
+    ).
+
+% Case 1: Valid move for single card or matching number of cards
+% valid_single_or_same_size_move(+Move, +LastPlay) - Checks if Move has higher rank than LastPlay
+valid_single_or_same_size_move(Move, LastPlay) :-
     rank_order(RankOrder),
-    compare_hands(Move, LastPlay, RankOrder).
+    hand_rank(Move, RankOrder, MoveRank),
+    hand_rank(LastPlay, RankOrder, LastPlayRank),
+    MoveRank > LastPlayRank,
+    same_value_cards(Move).
+
+% Check if all cards in the hand have the same value
+% same_value_cards(+Hand) - Ensures all cards in Hand have the same rank
+same_value_cards([Card | Cards]) :-
+    maplist(same_rank(Card), Cards).
+
+same_rank((Rank, _Suit), (Rank, _)).
+
+
+% Determine rank of a hand in the order list (modified for single-card comparison)
+% hand_rank(+Hand, +RankOrder, -Rank) - Retrieves the rank of the first card in Hand in RankOrder
+hand_rank([Card|_], RankOrder, Rank) :-
+    nth0(Rank, RankOrder, Card).
+
 
 % Compare Move with Last Play
 % compare_hands(+Move, +LastPlay, +RankOrder) - Checks if Move has a higher rank than LastPlay
@@ -57,11 +94,11 @@ hand_rank([Card|_], RankOrder, Rank) :-
     nth0(Rank, RankOrder, Card).
 
 % Players Turn
-% player_turn(+Move) - Handles the players turn, ensuring valid moves
+% player_turn(+Move) - Handles the player's turn, ensuring valid moves and preventing multiple executions
 player_turn(Move) :-
     current_turn(player),
     last_play(LastPlay),
-    valid_move(Move, LastPlay),
+    once(valid_move(Move, LastPlay)),      % Ensures valid_move succeeds only once
     play_move(player, Move),
     next_player_turn.
 
