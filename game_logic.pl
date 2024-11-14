@@ -32,7 +32,7 @@ rank_order([(3, clubs), (3, diamonds), (3, hearts), (3, spades),
 initialize_game(PlayerHand, AIHand) :-
     assert(player_hand(player, PlayerHand)),
     assert(player_hand(ai, AIHand)),
-    random_between(0, 0, FirstPlayer),
+    random_between(0, 1, FirstPlayer), % Randomly determine the first player (0 for player, 1 for AI)
     (FirstPlayer = 0 -> assert(current_turn(player)); assert(current_turn(ai))),
     assert(last_play([])).
 
