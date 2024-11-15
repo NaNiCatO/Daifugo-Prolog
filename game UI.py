@@ -56,7 +56,7 @@ class Game:
                 button["action"]()
 
     def increase_card_count(self):
-        if self.card_count < 10:
+        if self.card_count < 26:
             self.card_count += 1
 
     def decrease_card_count(self):
@@ -137,7 +137,7 @@ class Game:
         self.draw_text("Daifugō card game", self.font, self.text_color, center_x - 125, center_y - 200)
 
         # Draw labels
-        self.draw_text(f"Number of card: {self.card_count} (MAX 10)", self.small_font, self.text_color, 20, center_y - 100)
+        self.draw_text(f"Number of card: {self.card_count} (MAX 26)", self.small_font, self.text_color, 20, center_y - 100)
         self.draw_text(f"Number of AI: {self.ai_count} (MAX 3)", self.small_font, self.text_color, 20, center_y - 60)
 
         # Draw buttons
@@ -179,8 +179,7 @@ class Game:
         return {"current": pos, "target": pos}
 
     def card_visability(self, card, card_data):
-        # card in self.players[0].hand or card in self.played_cards or card in self.top_card
-        if True:
+        if card in self.players[0].hand or card in self.played_cards or card in self.top_card:
             return card_data["card_images"]
         else:
             return self.closed_card
@@ -191,7 +190,7 @@ class Game:
             if card in self.players[0].hand:
                 card_data["card_positions"]["target"] = (self.players[0].hand.index(card) * ((self.screen_width-100) // len(self.players[0].hand)), 650)
             elif card in self.players[1].hand:
-                card_data["card_positions"]["target"] = (self.players[1].hand.index(card) * ((self.screen_width-100) // len(self.players[1].hand)), 100)
+                card_data["card_positions"]["target"] = (self.players[1].hand.index(card) * ((self.screen_width-100) // len(self.players[1].hand)), -100)
 
 
     def draw_cards(self):
@@ -247,8 +246,11 @@ class Game:
         self.ai_query = True
         if self.top_card:
             print("AI is playing...")
-            results = list(self.prolog.query("ai_turn(Move)"))
-            results = [card.strip(",").strip() for card in results[0]['Move']]
+            try:
+                results = list(self.prolog.query("ai_turn(Move)"))
+                results = [card.strip(",").strip() for card in results[0]['Move']]
+            except:
+                results = None
             if results:
                 print("Results:", results)
                 for card in self.current_player.hand:
@@ -281,11 +283,11 @@ class Game:
                     self.card_UIobj.move_to_end(card)
                     card_data = self.card_UIobj[card]
                     card_data["card_positions"]["target"] = ((self.screen_width // 2) - (100/len(self.selected_cards)*i) + randint(-3,3), (self.screen_height // 2) - 100 + randint(-5,5))
+                self.ai_query = False
                 self.check_winner()
                 self.set_initial_card_positions()
                 self.next_turn()
                 self.selected_cards = []  # Clear selections after playing
-                self.ai_query = False
                 self.print_game_state()
             else:
                 print("Invalid move. Try again.")
@@ -328,10 +330,12 @@ class Game:
 
 
     def check_winner(self):
-        if not self.current_player.hand:
+        game_end = list(self.prolog.query("check_game_end(Winner)"))
+        if game_end:
             self.winner = self.current_player
-            print(f"{self.winner.name} wins!")
-        
+            winner = game_end[0]["Winner"]
+            print(f"\nGame over! The winner is: {winner}")
+            self.ai_query = True
 
     def run_game(self):
         running = True

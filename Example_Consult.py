@@ -40,6 +40,14 @@ turns = [
     {"ai": "Move"}
 ]
 
+# =====================================================================================
+# in prolog "skip_turn" have this line (Current = player -> Next = ai; Next = player)
+# Maybe we can use Try and Catch to fix? if it works, we can use it but i will do it later
+# try: 
+#   list(prolog.query(f"ai_turn({move})"))
+# except:
+#   list(prolog.query("game_logic:skip_turn"))
+# =====================================================================================
 for i, turn in enumerate(turns):
     print(f"\nTurn {i+1}")
     if "player" in turn:
@@ -69,3 +77,5 @@ for i, turn in enumerate(turns):
         break
 else:
     print("\nGame is still ongoing.")
+
+# OK ITS WORKING!!!!!!!! (using Try and Catch)
