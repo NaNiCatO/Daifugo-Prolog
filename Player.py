@@ -23,13 +23,13 @@ class Player:
     def show_hand(self):
         return [str(card) for card in self.hand]
     
-    def sort_hand(self):
+    def sort_hand(self, reverse=False):
         # Sort the hand by card rank then suit but A is the second highest and 2 is the highest
         rank_order = {'2': 13, 'A': 12, 'K': 11, 'Q': 10, 'J': 9, '10': 8, '9': 7, '8': 6, '7': 5, '6': 4, 
               '5': 3, '4': 2, '3': 1}
 
         # Sort the hand by rank first, then by suit alphabetically
-        self.hand = sorted(self.hand, key=lambda card: (rank_order[card.rank], card.suit))
+        self.hand = sorted(self.hand, key=lambda card: (rank_order[card.rank], card.suit), reverse=reverse)
 
     def __repr__(self):
         return f"Player: {self.name}, Hand: {len(self.hand)} cards"

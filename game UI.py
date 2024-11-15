@@ -15,7 +15,7 @@ class Game:
         # initialize game settings
         self.state = "home"
         self.players: List[Player] = [Player("Player")]
-        self.card_count: int = 1
+        self.card_count: int = 5
         self.ai_count: int = 1
         self.selected_cards = []
 
@@ -72,6 +72,12 @@ class Game:
             self.ai_count -= 1
 
     def play_game(self):
+        # Initialize Prolog instance
+        self.prolog = Prolog()
+        # Load the Prolog game logic module
+        self.prolog.consult("game_logic.pl")
+        self.prolog.consult("ai_logic.pl")
+
         self.deck = Deck()
         self.played_cards = []
         self.num_played_cards = 0
@@ -84,28 +90,31 @@ class Game:
         print(f"- Number of cards: {self.card_count}")
         print(f"- Number of AI: {self.ai_count}")
         for i in range(self.ai_count):
-            self.players.append(Player(f"AI {i+1}"))
+            self.players.append(Player(f"AI"))
         self.status_player = [True for i in range(len(self.players))]
         self.playable_player = len(self.players)
-        start_card = self.deck.cards[0]
         self.deck.shuffle()
         self.deal_initial_cards()
-        if start_card in self.players[0].hand:
-            self.current_player = self.players[0]
-        elif start_card in self.players[1].hand:
-            self.current_player = self.players[1]
-        elif start_card in self.players[2].hand:
-            self.current_player = self.players[2]
-        elif start_card in self.players[3].hand:
-            self.current_player = self.players[3]
+        print(f"initialize_game({self.players[0].show_hand()}, {self.players[1].show_hand()})")
+        list(self.prolog.query(f"initialize_game({self.players[0].show_hand()}, {self.players[1].show_hand()})"))
+        for player in self.players:
+            player.sort_hand(reverse=False)
+
+        self.current_player = self.players[0]
+
+        self.current_turn = list(self.prolog.query("game_logic:current_turn(Player)"))[0]["Player"]
+        if self.current_turn.lower() != self.current_player.name.lower():
+            list(self.prolog.query("game_logic:skip_turn"))
+        self.print_game_state()
         self.set_initial_card_positions()
 
 
     def deal_initial_cards(self):
-        for i in range(self.deck.remaining_cards()):
-            self.players[i % (self.ai_count + 1)].receive_cards(self.deck.deal(self.card_count))
+        for i in range(self.card_count):
+            self.players[0].receive_cards(self.deck.deal(1))
+            self.players[1].receive_cards(self.deck.deal(1))
         for player in self.players:
-            player.sort_hand()
+            player.sort_hand(reverse=True)
 
     def draw_home_page(self):
         self.screen.fill(self.dark_green)
@@ -139,7 +148,7 @@ class Game:
         self.card_UIobj = OrderedDict()
         self.closed_card = pygame.transform.scale(pygame.image.load("Cards/red card.png"), (150, 200))
         for card in self.deck.cards:
-            self.card_UIobj[card] = {"card_images": self.card_image(card), "card_positions": self.card_position(), "card_visability": True}
+            self.card_UIobj[card] = {"card_images": self.card_image(card), "card_positions": self.card_position(), "card_visability": True, "card_show": True}
 
     def draw_main_game(self):
         self.font = pygame.font.SysFont('Helvetica', 40)
@@ -235,18 +244,13 @@ class Game:
     def ai_play(self):
         self.ai_query = True
         if self.top_card:
-            # Initialize the Prolog engine
-            prolog = Prolog()
-            # Load the Prolog file containing your move validation and selection logic
-            prolog.consult("Move_Validation.pro")
-            query = f"best_move([{', '.join([str(card) for card in self.current_player.hand])}], {str(self.top_card[-1])}, BestMove)"
-            print("Query:", query)
-            results = list(prolog.query(query))
-            # results = 0
-            print("Results:", results)
+            print("AI is playing...")
+            results = list(self.prolog.query("game_logic:ai_turn(Move)"))
+            print("AI results:", results)
+
             if results:
-                print("Best move:", results[0]['BestMove'])
-                best_move = results[0]['BestMove']
+                results = [result[2:-2] for result in results["Move"]]
+                print("Results:", results)
                 for card in self.current_player.hand:
                     if f"card({card.rank}, {card.suit.lower()})" == best_move:
                         print(f"{self.current_player.name} played {card}")
@@ -264,29 +268,10 @@ class Game:
         if self.selected_cards:
             self.sort_confirm()
             self.num_played_cards = len(self.selected_cards)
-            if self.num_played_cards == 1 and self.top_card:
-                # Initialize Prolog
-                prolog = Prolog()
-                # Load the Prolog code into Python (assume code is saved in 'valid_move_rules.pl')
-                prolog.consult("Move_Validation.pro")
-                # Query Prolog to check if it's a valid move
-                query_result = list(prolog.query(
-                    f"valid_move({str(self.selected_cards[0])}, {str(self.top_card[-1])})"
-                ))
-                if query_result:
-                    for i, card in enumerate(self.selected_cards):
-                        self.current_player.play_card(card)
-                        self.top_card.append(card)
-                        self.card_UIobj.move_to_end(card)
-                        card_data = self.card_UIobj[card]
-                        card_data["card_positions"]["target"] = ((self.screen_width // 2) - (100/len(self.selected_cards)*i) + randint(-3,3), (self.screen_height // 2) - 100 + randint(-5,5))
-                    self.set_initial_card_positions()
-                    self.next_turn()
-                    self.selected_cards = []  # Clear selections after playing
-                    self.ai_query = False
-                else:
-                    print("Invalid move. Try again.")
-            else:
+            move = [str(card) for card in self.selected_cards]
+            print(f"{self.current_player.name} played {move}")
+            query_result = list(self.prolog.query(f"player_turn({move})"))
+            if query_result:
                 for i, card in enumerate(self.selected_cards):
                     self.current_player.play_card(card)
                     self.top_card.append(card)
@@ -298,7 +283,10 @@ class Game:
                 self.next_turn()
                 self.selected_cards = []  # Clear selections after playing
                 self.ai_query = False
-            
+                self.print_game_state()
+            else:
+                print("Invalid move. Try again.")
+
 
     def sort_confirm(self):
         # Sort the hand by card rank then suit but A is the second highest and 2 is the highest
@@ -330,7 +318,9 @@ class Game:
         self.status_player[self.players.index(self.current_player)] = False
         self.playable_player -= 1
         self.next_turn()
+        list(self.prolog.query("game_logic:skip_turn"))
         print(f"{self.current_player.name} skipped their turn.")
+        self.print_game_state()
 
     def clear_table(self):
         pass
@@ -378,6 +368,19 @@ class Game:
             pygame.time.Clock().tick(120)
 
         pygame.quit()
+
+
+    def print_game_state(self):
+        # Get current player hands and turn
+        player_hand = list(self.prolog.query("game_logic:player_hand(player, Hand)"))[0]["Hand"]
+        ai_hand = list(self.prolog.query("game_logic:player_hand(ai, Hand)"))[0]["Hand"]
+        current_turn = list(self.prolog.query("game_logic:current_turn(Player)"))[0]["Player"]
+        last_play = list(self.prolog.query("game_logic:last_play(LastPlay)"))[0]["LastPlay"]
+        print(f"\nCurrent turn: {current_turn}")
+        print(f"Player hand: {player_hand}")
+        print(f"AI hand: {ai_hand}")
+        print(f"Last play: {last_play}")
+
 
 
 if __name__ == "__main__":

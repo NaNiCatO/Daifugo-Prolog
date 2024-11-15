@@ -8,7 +8,7 @@ class Card:
         self.color = color
 
     def __repr__(self):
-        return f"card('{self.rank}', {self.suit.lower()})"
+        return f"({self.rank}, '{self.suit.lower()}')"
 
 
 class Deck:
