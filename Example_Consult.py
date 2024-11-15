@@ -20,8 +20,8 @@ def print_game_state():
     print(f"Last play: {last_play}")
 
 # Initialize game with example hands for player and AI
-player_hand = [(3, 'hearts'), (4, 'spades'), (6, 'clubs'), (7, 'hearts'), (9, 'diamonds')]
-ai_hand = [(3, 'diamonds'), (5, 'clubs'), (7, 'spades'), (10, 'hearts'), ("j", 'clubs')]
+player_hand = [('3', 'hearts'), ('4', 'spades'), ('6', 'clubs'), ('7', 'hearts'), ('9', 'diamonds'), ('2', 'diamonds')]
+ai_hand = [('3', 'diamonds'), ('5', 'clubs'), ('7', 'spades'), ('10', 'hearts'), ("j", 'clubs')]
 
 print("Initializing game...")
 print(f"initialize_game({player_hand}, {ai_hand})")
@@ -31,11 +31,13 @@ print_game_state()
 
 # Simulate a few moves
 turns = [
-    {"player": [(4, 'spades')]},   # Player plays a single card
+    {"ai": "Move"},
+    {"player": [('4', 'spades')]},   # Player plays a single card
     {"ai": "Move"},        # AI plays a single card
-    {"player": [(7, 'hearts')]},   # Player plays a single card
+    {"player": [('7', 'hearts')]},   # Player plays a single card
     {"ai": "Move"},      # AI plays a single card
-    {"player": "skip"},            # Player skips
+    {"player": [('2', 'diamonds')]},  # Player skips turn
+    {"ai": "Move"}
 ]
 
 for i, turn in enumerate(turns):

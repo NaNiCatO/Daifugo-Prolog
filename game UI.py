@@ -15,7 +15,7 @@ class Game:
         # initialize game settings
         self.state = "home"
         self.players: List[Player] = [Player("Player")]
-        self.card_count: int = 5
+        self.card_count: int = 16
         self.ai_count: int = 1
         self.selected_cards = []
 
@@ -75,8 +75,8 @@ class Game:
         # Initialize Prolog instance
         self.prolog = Prolog()
         # Load the Prolog game logic module
-        self.prolog.consult("game_logic.pl")
         self.prolog.consult("ai_logic.pl")
+        self.prolog.consult("game_logic.pl")
 
         self.deck = Deck()
         self.played_cards = []
@@ -175,10 +175,12 @@ class Game:
         return pygame.transform.scale(pygame.image.load(f"Cards/{card.suit}_rm/{card.rank}.png"), (150, 200))
     
     def card_position(self):
-        return {"current": (650, 200), "target": (650, 200)}
+        pos = (self.screen_width // 2) + 200, (self.screen_height // 2) - 100
+        return {"current": pos, "target": pos}
 
     def card_visability(self, card, card_data):
-        if card in self.players[0].hand or card in self.played_cards or card in self.top_card:
+        # card in self.players[0].hand or card in self.played_cards or card in self.top_card
+        if True:
             return card_data["card_images"]
         else:
             return self.closed_card
@@ -189,7 +191,7 @@ class Game:
             if card in self.players[0].hand:
                 card_data["card_positions"]["target"] = (self.players[0].hand.index(card) * ((self.screen_width-100) // len(self.players[0].hand)), 650)
             elif card in self.players[1].hand:
-                card_data["card_positions"]["target"] = (self.players[1].hand.index(card) * ((self.screen_width-100) // len(self.players[1].hand)), -100)
+                card_data["card_positions"]["target"] = (self.players[1].hand.index(card) * ((self.screen_width-100) // len(self.players[1].hand)), 100)
 
 
     def draw_cards(self):
@@ -245,17 +247,15 @@ class Game:
         self.ai_query = True
         if self.top_card:
             print("AI is playing...")
-            results = list(self.prolog.query("game_logic:ai_turn(Move)"))
-            print("AI results:", results)
-
+            results = list(self.prolog.query("ai_turn(Move)"))
+            results = [card.strip(",").strip() for card in results[0]['Move']]
             if results:
-                results = [result[2:-2] for result in results["Move"]]
                 print("Results:", results)
                 for card in self.current_player.hand:
-                    if f"card({card.rank}, {card.suit.lower()})" == best_move:
+                    if f"({card.rank.lower()}, {card.suit.lower()})" in results:
                         print(f"{self.current_player.name} played {card}")
                         self.selected_cards.append(card)
-                        self.confirm_selection()
+                self.confirm_selection()
             else:
                 print("No valid move found.")
                 self.skip_turn()
@@ -268,9 +268,12 @@ class Game:
         if self.selected_cards:
             self.sort_confirm()
             self.num_played_cards = len(self.selected_cards)
-            move = [str(card) for card in self.selected_cards]
-            print(f"{self.current_player.name} played {move}")
-            query_result = list(self.prolog.query(f"player_turn({move})"))
+            if self.current_player == self.players[0]:
+                move = [card.format_card() for card in self.selected_cards]
+                print(f"{self.current_player.name} played {move}")
+                query_result = list(self.prolog.query(f"player_turn({move})"))
+            else:
+                query_result = True
             if query_result:
                 for i, card in enumerate(self.selected_cards):
                     self.current_player.play_card(card)
@@ -307,6 +310,7 @@ class Game:
                 self.card_UIobj[card]["card_positions"]["target"] = (self.card_UIobj[card]["card_positions"]["target"][0] - 200, self.card_UIobj[card]["card_positions"]["target"][1])
             self.played_cards.extend(self.top_card)
             self.top_card = []
+        self.print_game_state()
 
 
     def skip_turn(self):
@@ -317,13 +321,11 @@ class Game:
 
         self.status_player[self.players.index(self.current_player)] = False
         self.playable_player -= 1
-        self.next_turn()
         list(self.prolog.query("game_logic:skip_turn"))
         print(f"{self.current_player.name} skipped their turn.")
-        self.print_game_state()
+        self.next_turn()
+        
 
-    def clear_table(self):
-        pass
 
     def check_winner(self):
         if not self.current_player.hand:
@@ -376,7 +378,7 @@ class Game:
         ai_hand = list(self.prolog.query("game_logic:player_hand(ai, Hand)"))[0]["Hand"]
         current_turn = list(self.prolog.query("game_logic:current_turn(Player)"))[0]["Player"]
         last_play = list(self.prolog.query("game_logic:last_play(LastPlay)"))[0]["LastPlay"]
-        print(f"\nCurrent turn: {current_turn}")
+        print(f"\nCurrent turn: {current_turn} {self.current_player.name}")
         print(f"Player hand: {player_hand}")
         print(f"AI hand: {ai_hand}")
         print(f"Last play: {last_play}")

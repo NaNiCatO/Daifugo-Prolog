@@ -9,6 +9,9 @@ class Card:
 
     def __repr__(self):
         return f"({self.rank}, '{self.suit.lower()}')"
+    
+    def format_card(self):
+        return (self.rank.lower(), self.suit.lower())
 
 
 class Deck:

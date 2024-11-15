@@ -21,7 +21,7 @@ class Player:
             raise ValueError(f"{card} is not in {self.name}'s hand.")
 
     def show_hand(self):
-        return [str(card) for card in self.hand]
+        return [card.format_card() for card in self.hand]
     
     def sort_hand(self, reverse=False):
         # Sort the hand by card rank then suit but A is the second highest and 2 is the highest

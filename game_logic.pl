@@ -8,19 +8,19 @@
 ]).
 
 % Define card ranks for the standard gameplay order, with suits ranked: clubs < diamonds < hearts < spades
-rank_order([(3, clubs), (3, diamonds), (3, hearts), (3, spades),
-            (4, clubs), (4, diamonds), (4, hearts), (4, spades),
-            (5, clubs), (5, diamonds), (5, hearts), (5, spades),
-            (6, clubs), (6, diamonds), (6, hearts), (6, spades),
-            (7, clubs), (7, diamonds), (7, hearts), (7, spades),
-            (8, clubs), (8, diamonds), (8, hearts), (8, spades),
-            (9, clubs), (9, diamonds), (9, hearts), (9, spades),
-            (10, clubs), (10, diamonds), (10, hearts), (10, spades),
-            (j, clubs), (j, diamonds), (j, hearts), (j, spades),
-            (q, clubs), (q, diamonds), (q, hearts), (q, spades),
-            (k, clubs), (k, diamonds), (k, hearts), (k, spades),
-            (a, clubs), (a, diamonds), (a, hearts), (a, spades),
-            (2, clubs), (2, diamonds), (2, hearts), (2, spades)]).
+rank_order([('3', clubs), ('3', diamonds), ('3', hearts), ('3', spades),
+            ('4', clubs), ('4', diamonds), ('4', hearts), ('4', spades),
+            ('5', clubs), ('5', diamonds), ('5', hearts), ('5', spades),
+            ('6', clubs), ('6', diamonds), ('6', hearts), ('6', spades),
+            ('7', clubs), ('7', diamonds), ('7', hearts), ('7', spades),
+            ('8', clubs), ('8', diamonds), ('8', hearts), ('8', spades),
+            ('9', clubs), ('9', diamonds), ('9', hearts), ('9', spades),
+            ('10', clubs), ('10', diamonds), ('10', hearts), ('10', spades),
+            ('j', clubs), ('j', diamonds), ('j', hearts), ('j', spades),
+            ('q', clubs), ('q', diamonds), ('q', hearts), ('q', spades),
+            ('k', clubs), ('k', diamonds), ('k', hearts), ('k', spades),
+            ('a', clubs), ('a', diamonds), ('a', hearts), ('a', spades),
+            ('2', clubs), ('2', diamonds), ('2', hearts), ('2', spades)]).
 
 % Game state facts
 :- dynamic player_hand/2.         % player_hand(PlayerType, Hand) - Stores the hand for each player type
