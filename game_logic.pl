@@ -101,14 +101,13 @@ max_suit(Suits, MaxSuit) :-
     suit_rank(MaxSuit, MaxRank).
 
 % Determine rank of a hand in the order list (modified for single-card comparison)
-% hand_rank(+Hand, +RankOrder, -Rank) - Retrieves the rank of the first card in Hand in RankOrder
-hand_rank([Card|_], RankOrder, Rank) :-
-    nth0(Rank, RankOrder, Card).
+hand_rank(Cards, RankOrder, Rank) :-
+    maplist(card_to_rank(RankOrder), Cards, Ranks),
+    max_list(Ranks, Rank).  % Find the highest rank in the hand.
 
-% Determine rank of hand in the order list
-% Modified to handle tuples (Rank, Suit)
-hand_rank([Card|_], RankOrder, Rank) :-
-    nth0(Rank, RankOrder, Card).
+card_to_rank(RankOrder, (Rank, Suit), Index) :-
+    nth0(Index, RankOrder, (Rank, Suit)).  % Get the index of the card in RankOrder.
+
 
 % Players Turn
 % player_turn(+Move) - Handles the players turn, ensuring valid moves and preventing multiple executions
