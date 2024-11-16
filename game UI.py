@@ -133,8 +133,8 @@ class Game:
         center_y = self.screen_height // 2
         self.buttons = [{ "text": "Start Game", "x": center_x - 100, "y": center_y / 5 *5, "width": 200, "height": 50, "action": self.play_game },
                         { "text": "Quit", "x": center_x - 100, "y": center_y / 5 *7, "width": 200, "height": 50, "action": sys.exit },
-                        { "text": "+", "x": 230, "y": center_y - 100, "width": 30, "height": 30, "action": self.increase_card_count },
-                        { "text": "-", "x": 260, "y": center_y - 100, "width": 30, "height": 30, "action": self.decrease_card_count }]
+                        { "text": "+", "x": 240, "y": center_y - 100, "width": 30, "height": 30, "action": self.increase_card_count },
+                        { "text": "-", "x": 270, "y": center_y - 100, "width": 30, "height": 30, "action": self.decrease_card_count }]
                         #{ "text": "+", "x": 230, "y": center_y - 60, "width": 30, "height": 30, "action": self.increase_ai_count },
                         #{ "text": "-", "x": 260, "y": center_y - 60, "width": 30, "height": 30, "action": self.decrease_ai_count }
         # Draw title
