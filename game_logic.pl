@@ -45,11 +45,18 @@ valid_move(Move, LastPlay) :-
     length(Move, MoveLen),
     (   % Case 1: LastPlay is empty (initial move) - any valid move is allowed
         LastPlay == [] ->
-        true  % Any move is valid if LastPlay is empty
+        (   MoveLen =:= 1  % Allow any single card
+        ;   MoveLen > 1, same_value_cards(Move)  % Allow multiple cards if they have the same rank
+        )
     ;   % Case 2: LastPlay is not empty, so compare rank and suit
         length(LastPlay, LastPlayLen),
-        MoveLen =:= LastPlayLen,  % Ensure same number of cards
-        valid_single_or_same_size_move(Move, LastPlay)
+        (   % Case 2.1: Same number of cards, check if value is higher
+            MoveLen =:= LastPlayLen ->
+            valid_single_or_same_size_move(Move, LastPlay)
+        ;   % Case 2.2: Move has more cards (exactly 2 more)
+            MoveLen =:= LastPlayLen + 2 ->
+            same_value_cards(Move)
+        )
     ).
 
 % Modified comparison for same-size moves to include suit check
