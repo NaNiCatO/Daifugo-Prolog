@@ -34,7 +34,6 @@ class Game:
 
 
 
-        
     def draw_text(self, text, font, color, x, y):
         rendered_text = font.render(text, True, color)
         self.screen.blit(rendered_text, (x, y))
@@ -84,6 +83,7 @@ class Game:
         self.ai_query = False
         self.winner = None
         self.top_card = []
+        start_card = self.deck.cards[0]
         self.innit_gameUI_data()
         self.state = "main_game"
         print("Game started with:")
@@ -97,10 +97,14 @@ class Game:
         self.deal_initial_cards()
         print(f"initialize_game({self.players[0].show_hand()}, {self.players[1].show_hand()})")
         list(self.prolog.query(f"initialize_game({self.players[0].show_hand()}, {self.players[1].show_hand()})"))
-        for player in self.players:
-            player.sort_hand(reverse=False)
 
-        self.current_player = self.players[0]
+
+        if start_card in self.players[0].hand:
+            self.current_player = self.players[0]
+        elif start_card in self.players[1].hand:
+            self.current_player = self.players[1]
+        else:
+            self.current_player = self.players[randint(0, 1)]
 
         self.current_turn = list(self.prolog.query("game_logic:current_turn(Player)"))[0]["Player"]
         if self.current_turn.lower() != self.current_player.name.lower():
@@ -114,7 +118,7 @@ class Game:
             self.players[0].receive_cards(self.deck.deal(1))
             self.players[1].receive_cards(self.deck.deal(1))
         for player in self.players:
-            player.sort_hand(reverse=True)
+            player.sort_hand(reverse=False)
 
     def draw_home_page(self):
         self.screen.fill(self.dark_green)
@@ -130,15 +134,15 @@ class Game:
         self.buttons = [{ "text": "Start Game", "x": center_x - 100, "y": center_y / 5 *5, "width": 200, "height": 50, "action": self.play_game },
                         { "text": "Quit", "x": center_x - 100, "y": center_y / 5 *7, "width": 200, "height": 50, "action": sys.exit },
                         { "text": "+", "x": 230, "y": center_y - 100, "width": 30, "height": 30, "action": self.increase_card_count },
-                        { "text": "-", "x": 260, "y": center_y - 100, "width": 30, "height": 30, "action": self.decrease_card_count },
-                        { "text": "+", "x": 230, "y": center_y - 60, "width": 30, "height": 30, "action": self.increase_ai_count },
-                        { "text": "-", "x": 260, "y": center_y - 60, "width": 30, "height": 30, "action": self.decrease_ai_count }]
+                        { "text": "-", "x": 260, "y": center_y - 100, "width": 30, "height": 30, "action": self.decrease_card_count }]
+                        #{ "text": "+", "x": 230, "y": center_y - 60, "width": 30, "height": 30, "action": self.increase_ai_count },
+                        #{ "text": "-", "x": 260, "y": center_y - 60, "width": 30, "height": 30, "action": self.decrease_ai_count }
         # Draw title
         self.draw_text("Daifugō card game", self.font, self.text_color, center_x - 125, center_y - 200)
 
         # Draw labels
         self.draw_text(f"Number of card: {self.card_count} (MAX 26)", self.small_font, self.text_color, 20, center_y - 100)
-        self.draw_text(f"Number of AI: {self.ai_count} (MAX 3)", self.small_font, self.text_color, 20, center_y - 60)
+        # self.draw_text(f"Number of AI: {self.ai_count} (MAX 3)", self.small_font, self.text_color, 20, center_y - 60)
 
         # Draw buttons
         for button in self.buttons:
@@ -244,25 +248,20 @@ class Game:
 
     def ai_play(self):
         self.ai_query = True
-        if self.top_card:
-            print("AI is playing...")
-            try:
-                results = list(self.prolog.query("ai_turn(Move)"))
-                results = [card.strip(",").strip() for card in results[0]['Move']]
-            except:
-                results = None
-            if results:
-                print("Results:", results)
-                for card in self.current_player.hand:
-                    if f"({card.rank.lower()}, {card.suit.lower()})" in results:
-                        print(f"{self.current_player.name} played {card}")
-                        self.selected_cards.append(card)
-                self.confirm_selection()
-            else:
-                print("No valid move found.")
-                self.skip_turn()
+        print("AI is playing...")
+        try:
+            results = list(self.prolog.query("ai_turn(Move)"))
+            results = [card.strip(",").strip() for card in results[0]['Move']]
+        except:
+            results = None
+        if results:
+            print("Results:", results)
+            for card in self.current_player.hand:
+                if f"({card.rank.lower()}, {card.suit.lower()})" in results:
+                    self.selected_cards.append(card)
+            self.confirm_selection()
         else:
-            print("No played cards yet.")
+            print("No valid move found.")
             self.skip_turn()
 
 
@@ -288,7 +287,6 @@ class Game:
                 self.set_initial_card_positions()
                 self.next_turn()
                 self.selected_cards = []  # Clear selections after playing
-                self.print_game_state()
             else:
                 print("Invalid move. Try again.")
 
