@@ -291,13 +291,13 @@ class Game:
                 print("Invalid move. Try again.")
 
 
-    def sort_confirm(self):
+    def sort_confirm(self, re=False):
         # Sort the hand by card rank then suit but A is the second highest and 2 is the highest
         rank_order = {'2': 13, 'A': 12, 'K': 11, 'Q': 10, 'J': 9, '10': 8, '9': 7, '8': 6, '7': 5, '6': 4, 
               '5': 3, '4': 2, '3': 1}
 
         # Sort the hand by rank first, then by suit alphabetically
-        self.selected_cards = sorted(self.selected_cards, key=lambda card: (rank_order[card.rank], card.suit))
+        self.selected_cards = sorted(self.selected_cards, key=lambda card: (rank_order[card.rank], card.suit), reverse=re)
 
     def next_turn(self):
         if self.playable_player > 1:

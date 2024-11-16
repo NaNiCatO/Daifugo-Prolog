@@ -59,13 +59,18 @@ valid_move(Move, LastPlay) :-
     ).
 
 % Case 1: Valid move for single card or matching number of cards
-% valid_single_or_same_size_move(+Move, +LastPlay) - Checks if Move has higher rank than LastPlay
+% Check if Move has higher rank (based on the last card) than LastPlay
 valid_single_or_same_size_move(Move, LastPlay) :-
     rank_order(RankOrder),
-    hand_rank(Move, RankOrder, MoveRank),
-    hand_rank(LastPlay, RankOrder, LastPlayRank),
-    MoveRank > LastPlayRank,
-    same_value_cards(Move).
+    last(Move, MoveCard),            % Get the last card in Move
+    last(LastPlay, LastPlayCard),    % Get the last card in LastPlay
+    compare_cards(MoveCard, LastPlayCard, RankOrder).
+
+% Compare two cards based on rank order
+compare_cards(Card1, Card2, RankOrder) :-
+    nth0(Index1, RankOrder, Card1),
+    nth0(Index2, RankOrder, Card2),
+    Index1 > Index2.
 
 % Check if all cards in the hand have the same value
 % same_value_cards(+Hand) - Ensures all cards in Hand have the same rank
