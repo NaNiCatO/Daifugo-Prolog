@@ -37,48 +37,61 @@ initialize_game(PlayerHand, AIHand) :-
     assert(last_play([])).
 
 % Move Validation
-% valid_move(+Move, +LastPlay) - Checks if a Move is valid based on the last play
+% Modified valid_move/2 to check for same value and compare the highest suit
 valid_move(Move, LastPlay) :-
     player_hand(_, Hand),
     subset(Move, Hand),  % Ensure Move is a subset of the players hand
+    same_value_cards(Move),  % Ensure all cards in the move have the same rank
     length(Move, MoveLen),
     (   % Case 1: LastPlay is empty (initial move) - any valid move is allowed
         LastPlay == [] ->
-        (   MoveLen =:= 1  % Allow any single card
-        ;   MoveLen > 1, same_value_cards(Move)  % Allow multiple cards if they have the same rank
-        )
-    ;   % Case 2: LastPlay is not empty, so standard validation applies
+        true  % Any move is valid if LastPlay is empty
+    ;   % Case 2: LastPlay is not empty, so compare rank and suit
         length(LastPlay, LastPlayLen),
-        (   % Case 2.1: Same number of cards, check if value is higher
-            MoveLen =:= LastPlayLen ->
-            valid_single_or_same_size_move(Move, LastPlay)
-        ;   % Case 2.2: Move has more cards (exactly 2 more)
-            MoveLen =:= LastPlayLen + 2 ->
-            same_value_cards(Move)
-        )
+        MoveLen =:= LastPlayLen,  % Ensure same number of cards
+        valid_single_or_same_size_move(Move, LastPlay)
     ).
 
-% Case 1: Valid move for single card or matching number of cards
-% Check if Move has higher rank (based on the last card) than LastPlay
+% Modified comparison for same-size moves to include suit check
 valid_single_or_same_size_move(Move, LastPlay) :-
     rank_order(RankOrder),
-    last(Move, MoveCard),            % Get the last card in Move
-    last(LastPlay, LastPlayCard),    % Get the last card in LastPlay
-    compare_cards(MoveCard, LastPlayCard, RankOrder).
-
-% Compare two cards based on rank order
-compare_cards(Card1, Card2, RankOrder) :-
-    nth0(Index1, RankOrder, Card1),
-    nth0(Index2, RankOrder, Card2),
-    Index1 > Index2.
+    hand_rank(Move, RankOrder, MoveRank),
+    hand_rank(LastPlay, RankOrder, LastPlayRank),
+    (   % Case 1: Move has higher rank
+        MoveRank > LastPlayRank
+    ;   % Case 2: Ranks are equal, compare highest suits
+        MoveRank =:= LastPlayRank,
+        highest_suit(Move, MoveSuit),
+        highest_suit(LastPlay, LastPlaySuit),
+        suit_rank(MoveSuit, MoveSuitRank),
+        suit_rank(LastPlaySuit, LastPlaySuitRank),
+        MoveSuitRank > LastPlaySuitRank
+    ).
 
 % Check if all cards in the hand have the same value
-% same_value_cards(+Hand) - Ensures all cards in Hand have the same rank
+% Ensure all cards in the move have the same rank
 same_value_cards([Card | Cards]) :-
     maplist(same_rank(Card), Cards).
 
 same_rank((Rank, _Suit), (Rank, _)).
 
+% Extract the highest suit from a hand
+highest_suit(Hand, HighestSuit) :-
+    maplist(card_to_suit, Hand, Suits),
+    max_suit(Suits, HighestSuit).
+
+card_to_suit((_Rank, Suit), Suit).
+
+% Define suit ranking (clubs < diamonds < hearts < spades)
+suit_rank(clubs, 1).
+suit_rank(diamonds, 2).
+suit_rank(hearts, 3).
+suit_rank(spades, 4).
+
+max_suit(Suits, MaxSuit) :-
+    maplist(suit_rank, Suits, SuitRanks),
+    max_list(SuitRanks, MaxRank),
+    suit_rank(MaxSuit, MaxRank).
 
 % Determine rank of a hand in the order list (modified for single-card comparison)
 % hand_rank(+Hand, +RankOrder, -Rank) - Retrieves the rank of the first card in Hand in RankOrder
