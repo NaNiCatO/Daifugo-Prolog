@@ -64,11 +64,8 @@ for i, turn in enumerate(turns):
             print(list(prolog.query("game_logic:skip_turn")))
         else:
             move = turn["ai"]
-            print(f"ai_turn({move})")
-            try:
-                print(list(prolog.query(f"ai_turn({move})")))
-            except:
-                print(list(prolog.query("game_logic:skip_turn")))
+            print(list(prolog.query(f"ai_turn({move})")))
+
     
     print_game_state()
 

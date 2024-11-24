@@ -249,12 +249,9 @@ class Game:
     def ai_play(self):
         self.ai_query = True
         print("AI is playing...")
-        try:
-            results = list(self.prolog.query("ai_turn(Move)"))
-            results = [card.strip(",").strip() for card in results[0]['Move']]
-        except:
-            results = None
-        if results:
+        results = list(self.prolog.query("ai_turn(Move)"))
+        results = [card.strip(",").strip() for card in results[0]['Move']]
+        if results != []:
             print("Results:", results)
             for card in self.current_player.hand:
                 if f"({card.rank.lower()}, {card.suit.lower()})" in results:
@@ -262,7 +259,7 @@ class Game:
             self.confirm_selection()
         else:
             print("No valid move found.")
-            self.skip_turn()
+            self.skip_turn(prolog=False)
 
 
     def confirm_selection(self):
@@ -313,7 +310,7 @@ class Game:
         self.print_game_state()
 
 
-    def skip_turn(self):
+    def skip_turn(self, prolog=True):
         if self.selected_cards:
             for card in self.selected_cards:
                 self.card_UIobj[card]["card_positions"]["target"] = (self.card_UIobj[card]["card_positions"]["current"][0], self.card_UIobj[card]["card_positions"]["current"][1] + 20)
@@ -321,7 +318,7 @@ class Game:
 
         self.status_player[self.players.index(self.current_player)] = False
         self.playable_player -= 1
-        list(self.prolog.query("game_logic:skip_turn"))
+        if prolog : list(self.prolog.query("game_logic:skip_turn"))
         print(f"{self.current_player.name} skipped their turn.")
         self.next_turn()
         
