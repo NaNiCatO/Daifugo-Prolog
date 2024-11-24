@@ -8,7 +8,6 @@ from typing import List
 from collections import OrderedDict
 from random import randint
 from pyswip import Prolog
-from time import sleep
 
 class Game:
     def __init__(self):
