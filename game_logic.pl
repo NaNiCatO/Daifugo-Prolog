@@ -1,4 +1,5 @@
 :- module(game_logic, [
+    initialize_game/0,
     initialize_game/2,
     valid_move/2,
     player_turn/1,
@@ -27,8 +28,28 @@ rank_order([('3', clubs), ('3', diamonds), ('3', hearts), ('3', spades),
 :- dynamic last_play/1.            % last_play(Cards) - Tracks the last play in the game
 :- dynamic current_turn/1.         % current_turn(PlayerType) - Tracks whose turn it is (player or ai)
 
+% Shuffle a list randomly
+shuffle(List, Shuffled) :-
+    random_permutation(List, Shuffled).
+
+deal_cards(state(AIHand, PlayerHand, [])) :-
+    rank_order(Deck),
+    shuffle(Deck, ShuffledDeck),
+    length(PlayerHand, 5),
+    length(AIHand, 5),
+    append(PlayerHand, RestDeck, ShuffledDeck),
+    append(AIHand, _, RestDeck),
+    assert(player_hand(player, PlayerHand)),
+    assert(player_hand(ai, AIHand)).
+
 % Initialize the Game
-% initialize_game(+PlayerHand, +AIHand) - Sets up the game state with hands for the player and AI
+% initialize_game - Sets up the game state when hands were randomized using deal_cards/1
+initialize_game :-
+    random_between(0, 1, FirstPlayer), % Randomly determine the first player (0 for player, 1 for AI)
+    (FirstPlayer = 0 -> assert(current_turn(player)); assert(current_turn(ai))),
+    assert(last_play([])).
+
+% initialize_game(+PlayerHand, +AIHand) - Sets up the game state when hands were assigned in pygame
 initialize_game(PlayerHand, AIHand) :-
     assert(player_hand(player, PlayerHand)),
     assert(player_hand(ai, AIHand)),
@@ -125,8 +146,12 @@ ai_turn(Move) :-
     player_hand(ai, AIHand),
     last_play(LastPlay),
     ai_logic:best_move(state(AIHand, _, LastPlay), Move),
-    play_move(ai, Move),
-    next_player_turn.
+    (   Move = []  % No valid moves
+    ->  skip_turn
+    ;   play_move(ai, Move),
+    next_player_turn
+    ).
+    
 
 % Play Move
 % play_move(+PlayerType, +Move) - Updates the game state after a player makes a Move

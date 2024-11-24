@@ -16,7 +16,11 @@ best_move(GameState, BestMove) :-
 alpha_beta(GameState, Alpha, Beta, BestMove, Value) :-
     GameState = state(AIHand, _, LastPlay),
     valid_moves(AIHand, LastPlay, Moves),
-    best_move_from(Moves, GameState, Alpha, Beta, nil, BestMove, Value).
+    (   Moves = []  % No valid moves
+    ->  BestMove = [],
+    writeln('AI skipped their turn.')
+    ;   best_move_from(Moves, GameState, Alpha, Beta, nil, BestMove, Value)
+    ).
 
 % Evaluate moves and prune based on alpha and beta
 best_move_from([], _, Alpha, _, Move, Move, Alpha).  % No moves, return current best
